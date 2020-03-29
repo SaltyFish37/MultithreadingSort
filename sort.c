@@ -1,17 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define MaxSize 1000
+#include <pthread.h>
+#define MaxSize 2000
+
+typedef struct {
+    int* num;
+    int first;
+    int mid;
+    int last;
+    int* merge_num;
+}paras;
 
 int* dataFromFile(char *argv[]);
 int* dataFromInput(void);
 void getNum(char* str, int *num);
-void half(int head, int tail, int* parent, int* child);
+void QuickSort(int R[],int s,int t);
+int partition(int R[],int s,int t);
+void merge(int num[], int first, int mid, int last, int merge_num[]);
+void *runnerL(void* arg);
+void *runnerR(void* arg);
+void multiThreading(paras* args);
 
 int size = 0;
 
 int main(int argc, char *argv[]) {
     int* num;
+    paras args;
 
     if(argc == 2) {
         num = dataFromFile(argv);
@@ -19,32 +34,29 @@ int main(int argc, char *argv[]) {
         num = dataFromInput();
     }
 
-    int* child_num1;
-    int* child_num2;
+    printf("before(%d):", size);
+    for(int i = 0; i < size; i++) {
+        printf("%d ", num[i]);
+    }
+
     int* merge_num;
-    child_num1 = (int*)malloc(sizeof(int) * (size / 2));
-    child_num2 = (int*)malloc(sizeof(int) * (size - size / 2));
     merge_num = (int*)malloc(sizeof(int) * size);
-    half(0, size/2, num, child_num1);
-    half(size/2, size, num, child_num2);
+    args.num = num;
+    args.first = 0;
+    args.mid = size/2 - 1;
+    args.last = size-1;
+    args.merge_num = merge_num;
 
-//test
-printf("before:");
-for(int i = 0; i < size; i++) {
-printf("%d ", num[i]);
-}
+    multiThreading(&args);
 
-printf("\nchild_num1:");
-for(int i = 0; i < size/2; i++) {
-printf("%d:%d ", i+1, child_num1[i]);
-}
+    printf("\nafter(%d):", size);
+    for(int i = 0; i < size; i++) {
+        printf("%d ", args.merge_num[i]);
+    }
+    printf("\n");
 
-printf("\nchild_num2:");
-for(int i = 0; i < size - size / 2; i++) {
-printf("%d:%d ", i+1, child_num2[i]);
-}
-printf("\n");
-//
+    free(num);
+    free(merge_num);
 
     return 0;
 }
@@ -144,22 +156,97 @@ void getNum(char* str, int *num) {
     }
 }
 
-void half(int head, int tail, int* parent, int* child) {
+int partition(int R[],int s,int t) {
 /*
-从父数组中复制指定长度的元素至子数组
-parameter:  head - 父数组的起始位置
-            tail - 父数组的结束位置
-            parent - 夫数组
-            child - 子数组
+设定一个分界值，通过该分界值将数组分成左右两部分
+parameter: R：待划分数组
+           s：数组中的起始位置
+           t：数组中的结束位置
+输出：划分出的中点
+*/
+	int i = s,j = t;
+	int tmp = R[i];
+	while (i<j) {	
+        while (j>i && R[j] >= tmp)
+			j--;
+		R[i]=R[j];
+		while (i<j && R[i] <= tmp)
+			i++;
+		R[j]=R[i];
+	}
+	R[i]=tmp;
+	return i;
+}
+void QuickSort(int R[],int s,int t) {
+/*
+对R[s..t]的元素进行快速排序
+parameter: R：待排序数组
+           s：数组中的起始位置
+           t：数组中的结束位置
 输出：无
 */
-    for(int i = 0; head < tail; i++, head++) {
-        child[i] = parent[head];
-    }
+    int i;
+	int tmp;
+	if (s<t) {	
+		i=partition(R,s,t);
+		QuickSort(R,s,i-1);
+		QuickSort(R,i+1,t);
+	}
 }
 
+void merge(int num[], int first, int mid, int last, int merge_num[]) {
+/*
+将排好序的数组合并
+parameter: num：原数组，前一半和后一半已分别排好序
+           first：起始位置
+           mid：中间位置（与快排相一致）
+           last：结束位置
+           merge_num：存放结果的数组
+输出：无
+*/
+	int i = first, j = mid + 1;
+	int m = mid,   n = last;
+	int k = 0;
+	
+	while (i <= m && j <= n)
+	{
+		if (num[i] <= num[j])
+			merge_num[k++] = num[i++];
+		else
+			merge_num[k++] = num[j++];
+	}
+	
+	while (i <= m)
+		merge_num[k++] = num[i++];
+	
+	while (j <= n)
+		merge_num[k++] = num[j++];
+}
 
-
-
-
+void *runnerL(void* arg) {
+/*
+子线程，将参数转换并传给快排函数
+*/
+    paras* args = (paras*)arg;
+	QuickSort((*args).num, (*args).first, (*args).mid);
+}
+void *runnerR(void* arg) {
+/*
+子线程，将参数转换并传给快排函数
+*/
+    paras* args = (paras*)arg;
+	QuickSort((*args).num, (*args).mid, (*args).last);
+}
+void multiThreading(paras* args) {
+/*
+创建子线程,用快排分别对数组的前一半和后一半进行排序
+*/
+	pthread_t child_1;
+	pthread_t child_2;
+	pthread_create(&child_1,NULL,runnerL,args);
+	pthread_create(&child_2,NULL,runnerR,args);
+	pthread_join(child_1,NULL);
+	pthread_join(child_2,NULL);
+	merge((*args).num, (*args).first, (*args).mid, (*args).last, (*args).merge_num);
+}
 
