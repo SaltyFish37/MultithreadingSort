@@ -5,7 +5,8 @@
 
 int* dataFromFile(char *argv[]);
 int* dataFromInput(void);
-void split(char* str, int *num);
+void getNum(char* str, int *num);
+void half(int head, int tail, int* parent, int* child);
 
 int size = 0;
 
@@ -18,13 +19,31 @@ int main(int argc, char *argv[]) {
         num = dataFromInput();
     }
 
+    int* child_num1;
+    int* child_num2;
+    int* merge_num;
+    child_num1 = (int*)malloc(sizeof(int) * (size / 2));
+    child_num2 = (int*)malloc(sizeof(int) * (size - size / 2));
+    merge_num = (int*)malloc(sizeof(int) * size);
+    half(0, size/2, num, child_num1);
+    half(size/2, size, num, child_num2);
+
 //test
-printf("after:");
+printf("before:");
 for(int i = 0; i < size; i++) {
 printf("%d ", num[i]);
 }
-printf("\nhello");
-printf("\nhello");
+
+printf("\nchild_num1:");
+for(int i = 0; i < size/2; i++) {
+printf("%d:%d ", i+1, child_num1[i]);
+}
+
+printf("\nchild_num2:");
+for(int i = 0; i < size - size / 2; i++) {
+printf("%d:%d ", i+1, child_num2[i]);
+}
+printf("\n");
 //
 
     return 0;
@@ -70,7 +89,7 @@ int* dataFromFile(char *argv[]){
     }
 
     int *num = (int*)malloc(sizeof(int) * size);
-    split(str, num);
+    getNum(str, num);
     return num;
 }
 
@@ -92,11 +111,11 @@ int* dataFromInput(void) {
     }
 
     int *num = (int*)malloc(sizeof(int) * size);
-    split(str, num);
+    getNum(str, num);
     return num;
 }
 
-void split(char* str, int *num) {
+void getNum(char* str, int *num) {
 /*
 将字符串中数字部分转化为int型数据，剔除无关字符，
 ！仅在dataFromFile()函数和dataFromInput()函数中被调用
@@ -125,6 +144,19 @@ void split(char* str, int *num) {
     }
 }
 
+void half(int head, int tail, int* parent, int* child) {
+/*
+从父数组中复制指定长度的元素至子数组
+parameter:  head - 父数组的起始位置
+            tail - 父数组的结束位置
+            parent - 夫数组
+            child - 子数组
+输出：无
+*/
+    for(int i = 0; head < tail; i++, head++) {
+        child[i] = parent[head];
+    }
+}
 
 
 
