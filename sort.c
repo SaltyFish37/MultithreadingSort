@@ -166,33 +166,6 @@ void getNum(char* str, int *num) {
             }
         }
     }
-/*
-    int head, tail;
-    head = tail = 0;
-//    char *tmp;
-    int k = 0;
-    for(int i = 0; i < strlen(str); i++){
-        if(str[i] < '0' || str[i] > '9') {
-            if ((str[i-1]  < '0' || str[i-1] > '9')) {
-                tail++;
-                continue;
-            }
-            char *tmp;
-            head = tail;
-            tail = i;
-            int len = tail - head + 1;
-            tmp = (char*)malloc(sizeof(char) * len);
-            for(int j = 0;head < tail; j++,head++){
-                tmp[j] = str[head];
-            }
-            tmp[len-1] = '\0';
-            num[k] = atoi(tmp);
-            free(tmp);
-            tail++;
-            k++;
-        }
-    }
-*/
 }
 
 int partition(int R[],int s,int t) {
