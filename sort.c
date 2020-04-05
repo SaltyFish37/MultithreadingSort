@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
-#define MaxSize 2000
+#define MaxSize 1000
 
 typedef struct {
     int* num;
@@ -57,7 +57,6 @@ int main(int argc, char *argv[]) {
 
     free(num);
     free(merge_num);
-
     return 0;
 }
 
@@ -93,11 +92,20 @@ int* dataFromFile(char *argv[]){
     str[i-1] = '\n';
     str[i] = '\0';
 
-    for(int i = 0; i < strlen(str); i++){
-        if(str[i] >= '0' && str[i] <= '9') {
-            continue;
+    int j = 0;
+    char calc[strlen(str)];
+    strcpy(calc, str);
+    for(int i = 0; i < strlen(calc); i++) {
+        if ((calc[i] < '0' || calc[i] > '9') && calc[i] != '-') {
+            if (calc[i-1] < '0' || calc[i-1] > '9') {
+                calc[i] = ' ';
+                continue;
+            }
+            size++;
+            for(; j <= i; j++) {
+                calc[j] = ' ';
+            }
         }
-        size++;
     }
 
     int *num = (int*)malloc(sizeof(int) * size);
@@ -115,11 +123,20 @@ int* dataFromInput(void) {
     char str[MaxSize];
     fgets(str,MaxSize,stdin);
 
-    for(int i = 0; i < strlen(str); i++){
-        if(str[i] >= '0' && str[i] <= '9') {
-            continue;
+    int j = 0;
+    char calc[strlen(str)];
+    strcpy(calc, str);
+    for(int i = 0; i < strlen(calc); i++) {
+        if ((calc[i] < '0' || calc[i] > '9') && calc[i] != '-') {
+            if (calc[i-1] < '0' || calc[i-1] > '9') {
+                calc[i] = ' ';
+                continue;
+            }
+            size++;
+            for(; j <= i; j++) {
+                calc[j] = ' ';
+            }
         }
-        size++;
     }
 
     int *num = (int*)malloc(sizeof(int) * size);
@@ -135,12 +152,32 @@ void getNum(char* str, int *num) {
       一个存储数字的int数组用于存放结果
 输出：无
 */
+    int k = 0, j = 0;
+    for(int i = 0; i < strlen(str); i++) {
+        if ((str[i] < '0' || str[i] > '9') && str[i] != '-') {
+            if (str[i-1] < '0' || str[i-1] > '9') {
+                str[i] = ' ';
+                continue;
+            }
+            num[k] = atoi(str);
+            k++;
+            for(; j <= i; j++) {
+                str[j] = ' ';
+            }
+        }
+    }
+/*
     int head, tail;
     head = tail = 0;
-    char *tmp;
+//    char *tmp;
     int k = 0;
     for(int i = 0; i < strlen(str); i++){
         if(str[i] < '0' || str[i] > '9') {
+            if ((str[i-1]  < '0' || str[i-1] > '9')) {
+                tail++;
+                continue;
+            }
+            char *tmp;
             head = tail;
             tail = i;
             int len = tail - head + 1;
@@ -150,10 +187,12 @@ void getNum(char* str, int *num) {
             }
             tmp[len-1] = '\0';
             num[k] = atoi(tmp);
+            free(tmp);
             tail++;
             k++;
         }
     }
+*/
 }
 
 int partition(int R[],int s,int t) {
